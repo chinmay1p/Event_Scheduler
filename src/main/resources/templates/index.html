@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Task Management</title>
+</head>
+<body>
+<h1>Task Management</h1>
+
+<!-- Add Task -->
+<h2>Add Task</h2>
+<form id="addTaskForm">
+    <input type="text" id="addTaskName" placeholder="Task Name" required>
+    <input type="datetime-local" id="addTaskDateTime" required>
+    <button type="submit">Add Task</button>
+</form>
+
+<!-- Delete Task -->
+<h2>Delete Task</h2>
+<form id="deleteTaskForm">
+    <input type="text" id="deleteTaskName" placeholder="Task Name" required>
+    <button type="submit">Delete Task</button>
+</form>
+
+<!-- Update Task -->
+<h2>Update Task</h2>
+<form id="updateTaskForm">
+    <input type="text" id="updateTaskName" placeholder="Task Name" required>
+    <input type="datetime-local" id="updateTaskDateTime" required>
+    <button type="submit">Update Task</button>
+</form>
+
+<!-- Show Next Task -->
+<h2>Show Next Task</h2>
+<button id="showNextTaskButton">Show Next Task</button>
+<div id="nextTaskResult"></div>
+
+<!-- Search Task -->
+<h2>Search Task</h2>
+<form id="searchTaskForm">
+    <input type="text" id="searchTaskName" placeholder="Task Name" required>
+    <button type="submit">Search Task</button>
+</form>
+<div id="searchTaskResult"></div>
+
+<!-- Display All Tasks -->
+<h2>All Tasks</h2>
+<div id="taskList"></div>
+
+<script>
+    async function fetchTasks() {
+        const response = await fetch("/tasks/all");
+        const tasks = await response.json();
+        displayTasks(tasks);
+    }
+
+    function displayTasks(tasks) {
+        const taskListDiv = document.getElementById("taskList");
+        taskListDiv.innerHTML = "";
+        tasks.forEach(task => {
+            const taskDiv = document.createElement("div");
+            taskDiv.id = `task-${task.name}`;
+            taskDiv.innerText = `${task.name} at ${task.dateTime}`;
+            taskListDiv.appendChild(taskDiv);
+        });
+    }
+
+    document.getElementById("addTaskForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
+        const name = document.getElementById("addTaskName").value;
+        const dateTime = document.getElementById("addTaskDateTime").value;
+        await fetch("/tasks/add", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, dateTime })
+        });
+        alert("Task added!");
+        fetchTasks();
+    });
+
+    document.getElementById("deleteTaskForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
+        const name = document.getElementById("deleteTaskName").value;
+        await fetch(`/tasks/delete?name=${name}`, { method: "DELETE" });
+        alert("Task deleted!");
+        fetchTasks();
+    });
+
+    document.getElementById("updateTaskForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
+        const name = document.getElementById("updateTaskName").value;
+        const dateTime = document.getElementById("updateTaskDateTime").value;
+        await fetch("/tasks/update", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name, dateTime })
+        });
+        alert("Task updated!");
+        fetchTasks();
+    });
+
+    document.getElementById("showNextTaskButton").addEventListener("click", async function() {
+        const response = await fetch("/tasks/next");
+        const task = await response.json();
+        document.getElementById("nextTaskResult").innerText = task ? `Next Task: ${task.name} at ${task.dateTime}` : "No upcoming tasks!";
+    });
+
+    document.getElementById("searchTaskForm").addEventListener("submit", async function(event) {
+        event.preventDefault();
+        const name = document.getElementById("searchTaskName").value;
+        const response = await fetch(`/tasks/search?name=${name}`);
+        const task = await response.json();
+        document.getElementById("searchTaskResult").innerText = task ? `Task found: ${task.name} at ${task.dateTime}` : "Task not found.";
+    });
+
+    fetchTasks();
+</script>
+</body>
+</html>

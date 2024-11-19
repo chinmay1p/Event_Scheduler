@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&display=swap" rel="stylesheet">
+        <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.4/main.min.css' rel='stylesheet' />
+        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+        <meta charset="UTF-8">
+        <title>Plan-It!</title>
+        <link rel="icon" type="png" href="assets/icon.png">
+        <link rel="stylesheet" type="text/CSS" href="main.css">
+        <link rel="stylesheet" href="font.css">
+        <script src="jquery-3.7.1.min.js"></script>
+    </head>
+    <body>
+        <div id="banner" style="font-family: 'TheBlacklist'">
+            #Event Scheduler
+        </div>
+
+        <div id="taskList"></div>
+
+        <div id="drop">
+            <div class="menubar">
+                <img src="assets/menu.png" style="height: 25px;width: 25px;">
+            </div>
+            <div class="tasks">
+                <div class="tasktxt" id="adds" value="0" onclick="showadd(this)">
+                    <p>Add Task</p>
+                </div>
+                <div class="tasktxt" id="dels" value="0" onclick="showdel(this)">
+                    <p>Delete Task</p>
+                </div>
+                <div class="tasktxt" id="ups" value="0" onclick="showupdate(this)">
+                    <p>Update Task</p>
+                </div>
+                <div class="tasktxt" id="sear" value="0" onclick="showsearch(this)">
+                    <p>Search Task</p>
+                </div>
+                <div class="tasktxt" id="nxt" value="0" onclick="shownext(this)">
+                    <p>Upcoming Task</p>
+                </div>
+            </div>
+        </div>
+        <div id="drop2">
+            <button class="menubar2">
+                <img src="assets/cal1.png" style="height: 55px;width: 55px;">
+            </button>
+            <div class="calendar" id="cal">
+                <div id="calendar"></div>
+            </div>    
+        </div>
+
+        <div id="addform" class="forms">
+            <form id="addTaskForm">
+                <input type="text" id="addTaskName" placeholder="Task Name" required class="input" style="margin-top: 80px;">
+                <input type="datetime-local" id="addTaskDateTime" required class="input">
+                <button type="submit" class="button">Add Task</button>
+            </form>
+        </div>
+        <div id="delform" class="forms"  autocomplete="off">
+            <form id="deleteTaskForm">
+                <input type="text" id="deleteTaskName" placeholder="Task Name" required class="input" style="margin-top: 140px;">
+                <button type="submit" class="button">Delete Task</button>
+            </form>
+        </div>
+        <div id="upform" class="forms"  autocomplete="off">
+            <form id="updateTaskForm">
+                <input type="text" id="updateTaskName" placeholder="Task Name" required class="input" style="margin-top: 80px;">
+                <input type="datetime-local" id="updateTaskDateTime" required class="input">
+                <button type="submit" class="button" onclick="closeupdate()">Update Task</button>
+            </form>
+        </div>
+        <div id="searchform" class="forms"  autocomplete="off">
+            <form id="searchTaskForm">
+                <input type="text" id="searchTaskName" placeholder="Task Name" required class="input" style="margin-top: 100px;">
+                <button type="submit" class="button">Search Task</button>
+            </form>
+            <div id="searchTaskResult"></div>
+            <button type="submit" class="button" id="searchbut" style="width: 25%;display: none;margin-left: 250px;" onclick="closesearch()">OK!</button>
+        </div>
+        <div id="nxtform" class="forms">
+            <div id="nextTaskResult"></div>
+            <button type="submit" class="button" style="width: 25%;" onclick="closenxt()">OK!</button>
+        </div>
+        
+
+    <script src="app.js"></script>
+    <script src="app2.js"></script>
+    <script>
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        const ff = now.toISOString().slice(0, 16);
+        document.getElementById('addTaskDateTime').setAttribute('min', ff);
+        document.getElementById('updateTaskDateTime').setAttribute('min', ff);
+        async function fetchTasks() {
+            const response = await fetch("/tasks/all");
+            const tasks = await response.json();
+            displayTasks(tasks);
+            displayCalendar(tasks);
+        }
+        function displayCalendar(tasks) {
+            const calendarEl = document.getElementById('calendar');
+            const events = tasks.map(task => ({
+                title: task.name,
+                start: task.dateTime,
+            }));
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                events: events
+            });
+            calendar.render();
+        }
+        fetchTasks();
+
+    </script>
+    </body>
+</html>
